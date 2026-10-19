@@ -10,11 +10,15 @@ effort: xhigh
 
 輸入（由 controller 填）：
 
-- plan（已核准，含 AC／REG 與 D-ID 決策）：`.claude/agent-workspace/{ticket}/plan.md`
+- plan（已核准，含 AC／REG 與 D-ID 決策）：`{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/plan.md`
 - worktree／branch／base commit：{值}
-- lab 環境：`.claude/agent-workspace/{ticket}/lab.md`（無 lab 列可免）
-- CI 入口：{Jenkins job 等；無則寫「無」}
+- lab 環境：`{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/lab.md`（無 lab 列可免）
+- spec 更新擬議：{gate 1 核准的擬議內容或 plan 第 6 節指引；無則寫「無」}
 - 要答覆的 findings：{gate 退回或上輪項目；首輪寫「無」}
+- 回報對象：`{ticket}-controller`
+
+所有 workspace 檔案的讀寫都用輸入給的絕對路徑；不得用相對的 `.claude/agent-workspace/...`，也不得在 worktree 下另建 workspace。
+所有「回報 controller」＝用 SendMessage 送到回報對象。找不到收件者時等 60 秒重試、最多 5 次；重試用盡仍失敗就停在原地，controller 之後會來讀。
 
 ## step 1 — 回歸測試（先於修正）
 
@@ -26,6 +30,7 @@ effort: xhigh
 
 - 方法：invoke `agent-skills:incremental-implementation`（Increment Cycle＋Implementation Rules）；修正姿態照 `agent-skills:debugging-and-error-recovery` **Step 4（修根因，不修症狀）**。
 - 依 plan 實作：D-ID 決策照做；需偏離任一決策或 AC／REG 時回報 `ESCALATE`，不私自改。
+- spec 更新擬議不為「無」時，照擬議修改 spec（位置依合約），隨修正一起 commit——spec 變更在 code review 的審查範圍內。
 - 每個 slice 測試綠才進下一個；plan 範圍外的重構不做。
 
 ## step 3 — 自驗（交棒條件，不是驗收證據）
@@ -39,13 +44,12 @@ effort: xhigh
 
 1. 用 Agent tool 以 `agents/code-reviewer.md` 的角色定義開 subagent（**每輪新生，不得 fork**），輸入照該檔的輸入欄填：
    - commit {SHA}、branch {名稱}、base {SHA}
-   - plan：`.claude/agent-workspace/{ticket}/plan.md`
+   - plan：`{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/plan.md`
    - 範圍：第 1 輪 whole-branch；之後第 {N} 輪 fix diff
    - 上輪 findings 與修復說明：{首輪寫「無」}
    - CONSTITUTION：<貼上 agent-workflow 合約全文>＋專案 AGENTS.md 路徑
-   - 報告路徑：`.claude/agent-workspace/{ticket}/code-review-r{N}.md`
 
-2. 依 verdict 走：
+2. 把 subagent 的完整輸出存到 `{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/code-review-r{N}.md`，依 verdict 走：
    - **APPROVE** → step 5。
    - **REVISE** → 修全部 BLOCKER（不同意記回覆留給 gate），回 step 2–3，計一輪。
    - **ESCALATE／BLOCKED** → 原文回報 controller，即停。
@@ -54,14 +58,12 @@ effort: xhigh
 ## step 5 — verify（獨立證據核對）
 
 1. 用 Agent tool 以 `agents/verifier.md` 的角色定義開 subagent（不得 fork），輸入照該檔的輸入欄填：
-   - plan：`.claude/agent-workspace/{ticket}/plan.md`
+   - plan：`{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/plan.md`
    - 交付 commit {SHA}、worktree／branch {值}
-   - CI 入口：{值；無則寫「無」}
-   - lab.md：`.claude/agent-workspace/{ticket}/lab.md`（無 lab 列可免）
+   - lab.md：`{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/lab.md`（無 lab 列可免）
    - CONSTITUTION：<貼上 agent-workflow 合約全文>
-   - 報告路徑：`.claude/agent-workspace/{ticket}/verify.md`
 
-2. 依結果走：
+2. 把 subagent 的完整輸出存到 `{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/verify.md`，依結果走：
    - **APPROVE** → step 6。
    - **有列 FAIL** → 回 step 2 修正，計一輪（與 step 4 同一個迴圈上限）。FAIL 原因不明：先 invoke `agent-skills:debugging-and-error-recovery` Step 1–3 診斷；診斷出的根因與 plan 矛盾 → `ESCALATE` 回報 controller。
    - **BLOCKED** → 原文回報 controller，即停。

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "agent-workflow",
+  "description": "Local marketplace for the agent-workflow plugin",
+  "owner": {
+    "name": "Scott Chiang"
+  },
+  "plugins": [
+    {
+      "name": "agent-workflow",
+      "source": "./",
+      "description": "Three-layer flow runner: controller with human gates, maker sessions, fresh checker subagents; ticket identifier enforced by a tool.call mod.",
+      "version": "0.1.0"
+    }
+  ]
+}

@@ -14,6 +14,9 @@ effort: xhigh
 - 症狀：{phase 0 的症狀敘述}
 - 既有線索：{重現腳本／步驟路徑；無則寫「無」}
 - plan 路徑：`.claude/agent-workspace/{ticket}/plan.md`
+- 回報對象：`{ticket}-controller`
+
+所有「回報 controller」＝用 SendMessage 送到回報對象。找不到收件者時等 60 秒重試、最多 5 次（controller 的改名要等 user 的下一則訊息才生效）；重試用盡仍失敗就停在原地，controller 之後會來讀。
 
 ## step 1 — reproduce issue
 
@@ -31,7 +34,7 @@ effort: xhigh
   2. 根因與證據
   3. 修法與影響範圍
   4. 驗證條件：AC（原 bug 不再重現＋必須成立的新結果）與 REG（必須保住的既有行為），每條一個 ID、一個可判定結果、一個層級（unit／integration／lab）。影響面掃描的結果**物化成 REG 列**——「不會壞別的」是列，不是宣稱。只寫定義，不寫狀態或證據。
-  5. spec 更新：對照合約的 spec 位置（`agent/spec/`，專案另有規定時從專案），檢查現有 spec 是否因本修正要更新；要的話把擬議變更寫成本節，由人在 gate 裁決。**人核准後由你執行更新**，不在裁決前直接改 spec。
+  5. spec 更新：對照合約的 spec 位置（`agent/spec/`，專案另有規定時從專案），檢查現有 spec 是否因本修正要更新；要的話把擬議變更寫成本節。擬議由人在 gate 裁決；核准後由 build session 在 worktree 執行、隨修正一起 commit——**你不執行 spec 更新**。
 
 ## step 3 — review plan（inner loop，上限三輪）
 

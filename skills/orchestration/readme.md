@@ -16,7 +16,7 @@ L3 Skill                   —— 工具：執行各步驟用的方法，由 L2 
 |---|---|
 | `SKILL.md` | controller：問 user 選 flow、開 session（model／effort 路由）、注入憲法與任務 prompt、在人介入點停下、收異常出口（ESCALATE／BLOCKED／三輪未過） |
 | `reference/contract.md` | agent-workflow 合約（憲法）：工作目錄、文件種類、verdict 詞彙、迴圈上限、merge 歸人、證據規則、各 flow 的人介入點。**所有 session 在此框架下做事**，spawn 時隨 system prompt 注入 |
-| `../setup/SKILL.md` | 依合約建立專案工作目錄（`.claude/agent-workspace/`、`agent/spec/`） |
+| `../setup/SKILL.md` | 依合約建立專案工作目錄（`.claude/agent-workspace/`＋gitignore；`agent/spec/` 由第一份 spec 自然建立） |
 
 ## L2 — 任務 prompt
 

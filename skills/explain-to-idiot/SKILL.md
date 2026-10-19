@@ -1,9 +1,10 @@
 ---
 name: explain-to-idiot
-description: when user does not understand what the agent says or what the document says, the user ask agent to explain.
+description: Re-explain the previous reply or a named document in plain language.
 disable-model-invocation: true
 ---
 
-- 用 ASD-STE100 Simplified Technical English 說明user 指定的文件或是上一個你回給user的訊息, 增加一些context說明
-- 如果有代號如`ACxx`, `步驟x`等等, 要補充說明代號具體表示的事情
-- 用中文回答, 除非user明確說用英文
+- 用白話重新解釋 user 指定的文件或你上一則訊息：先一句話說整體在講什麼，再逐段展開；允許例子與類比，一句話一個概念。
+- 代號（AC-xx、REG-xx、D-x、步驟 x、verdict）逐個展開：定義去 `.claude/agent-workspace/{ticket}/plan.md` 或對應 spec 查，查不到就明說查不到，不要猜。
+- 只解釋，不重新裁決：verdict、狀態、數字照原文引，不軟化、不改寫結論。
+- 用中文回答，除非 user 明確說用英文。

@@ -1,0 +1,8 @@
+{
+  "name": "agent-workflow",
+  "version": "0.1.0",
+  "description": "Three-layer flow runner: controller with human gates, maker sessions, fresh checker subagents; ticket identifier enforced by a tool.call mod.",
+  "author": {
+    "name": "Scott Chiang"
+  }
+}
