@@ -15,10 +15,12 @@ effort: xhigh
 - lab 環境：`{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/lab.md`（無 lab 列可免）
 - spec 更新擬議：{gate 1 核准的擬議內容或 plan 第 6 節指引；無則寫「無」}
 - 要答覆的 findings：{gate 退回或上輪項目；首輪寫「無」}
-- 回報對象：`{ticket}-controller`
+- 回報對象：{controller 的 session 名}
 
 所有 workspace 檔案的讀寫都用輸入給的絕對路徑；不得用相對的 `.claude/agent-workspace/...`，也不得在 worktree 下另建 workspace。
 所有「回報 controller」＝用 SendMessage 送到回報對象。找不到收件者時等 60 秒重試、最多 5 次；重試用盡仍失敗就停在原地，controller 之後會來讀。
+
+**Fix 輪範圍分級**（首輪不適用；規則見合約「範圍分級」條）：修正 commit 完成後，跑 `git diff <上次交付 commit> HEAD --stat` 按白名單分類（doc-only／test-only／full，fail-closed）。產出**範圍聲明**：分類、diff --stat 原文、受影響測試 class 與其守護的 AC／REG ID（讀測試 doc 的 ID 註記推導）、重驗列、沿用列與來源報告。聲明隨 step 4／step 5 的輸入附給兩個 checker。自驗範圍同步收縮：doc-only 無測試可跑（確認 build 不受影響即可）、test-only 只重跑被改的測試 class、full 照 step 3 全套。
 
 ## step 1 — 回歸測試（先於修正）
 
@@ -43,13 +45,14 @@ effort: xhigh
 ## step 4 — code review（inner loop，上限三輪）
 
 1. 用 Agent tool 以 `agents/code-reviewer.md` 的角色定義開 subagent（**每輪新生，不得 fork**），輸入照該檔的輸入欄填：
-   - commit {SHA}、branch {名稱}、base {SHA}
+   - commit <SHA>、branch <名稱>、base <SHA>
    - plan：`{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/plan.md`
-   - 範圍：第 1 輪 whole-branch；之後第 {N} 輪 fix diff
-   - 上輪 findings 與修復說明：{首輪寫「無」}
+   - 範圍：第 1 輪 whole-branch；之後第 <N> 輪 fix diff
+   - 上輪 findings 與修復說明：<首輪寫「無」>
+   - 範圍聲明：<fix 輪附上；首輪寫「無」>
    - CONSTITUTION：<貼上 agent-workflow 合約全文>＋專案 AGENTS.md 路徑
 
-2. 把 subagent 的完整輸出存到 `{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/code-review-r{N}.md`，依 verdict 走：
+2. 把 subagent 的完整輸出存到 `{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/code-review-r<N>.md`，依 verdict 走：
    - **APPROVE** → step 5。
    - **REVISE** → 修全部 BLOCKER（不同意記回覆留給 gate），回 step 2–3，計一輪。
    - **ESCALATE／BLOCKED** → 原文回報 controller，即停。
@@ -59,8 +62,9 @@ effort: xhigh
 
 1. 用 Agent tool 以 `agents/verifier.md` 的角色定義開 subagent（不得 fork），輸入照該檔的輸入欄填：
    - plan：`{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/plan.md`
-   - 交付 commit {SHA}、worktree／branch {值}
+   - 交付 commit <SHA>、worktree／branch <值>
    - lab.md：`{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/lab.md`（無 lab 列可免）
+   - 範圍聲明：<fix 輪附上；首輪寫「無」>
    - CONSTITUTION：<貼上 agent-workflow 合約全文>
 
 2. 把 subagent 的完整輸出存到 `{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/verify.md`，依結果走：
@@ -70,4 +74,4 @@ effort: xhigh
 
 ## step 6 — 回報 controller
 
-第一行 `APPROVED`，附：交付 commit、回歸測試位置、`code-review-r{N}.md` 與 `verify.md` 路徑、MUST-RECORD 清單。人在 gate 驗收：AC／REG 逐列狀態、守根因的回歸測試。你不宣告驗收通過，不開 PR（phase 3 的事）。
+第一行 `APPROVED`，附：交付 commit、回歸測試位置、`code-review-r<N>.md` 與 `verify.md` 路徑、MUST-RECORD 清單。人在 gate 驗收：AC／REG 逐列狀態、守根因的回歸測試。你不宣告驗收通過，不開 PR（phase 3 的事）。

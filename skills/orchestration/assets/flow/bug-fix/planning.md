@@ -14,9 +14,9 @@ effort: xhigh
 - 症狀：{phase 0 的症狀敘述}
 - 既有線索：{重現腳本／步驟路徑；無則寫「無」}
 - plan 路徑：`.claude/agent-workspace/{ticket}/plan.md`
-- 回報對象：`{ticket}-controller`
+- 回報對象：{controller 的 session 名}
 
-所有「回報 controller」＝用 SendMessage 送到回報對象。找不到收件者時等 60 秒重試、最多 5 次（controller 的改名要等 user 的下一則訊息才生效）；重試用盡仍失敗就停在原地，controller 之後會來讀。
+所有「回報 controller」＝用 SendMessage 送到回報對象。找不到收件者時等 60 秒重試、最多 5 次；重試用盡仍失敗就停在原地，controller 之後會來讀。
 
 ## step 1 — reproduce issue
 
@@ -50,7 +50,7 @@ effort: xhigh
      另附專案 AGENTS.md／constitution 路徑（無則寫「無」）
    ```
 
-2. 把 reviewer 的完整輸出存到 `.claude/agent-workspace/{ticket}/plan-review-r{N}.md`，依 RECOMMENDATION 走：
+2. 把 reviewer 的完整輸出存到 `.claude/agent-workspace/{ticket}/plan-review-r<N>.md`，依 RECOMMENDATION 走：
    - **APPROVE** → 回報 controller：第一行 `APPROVED`，附 plan 路徑、本輪 review 報告路徑、MUST-RECORD 清單（由人在 gate 追蹤）。
    - **REVISE** → 修正**全部** BLOCKER，不得自行略過任何一項；不同意某項 finding 時把理由記進回覆，留給 gate 的人裁決。修完回到 1，計一輪。
    - **ESCALATE** → 需求級缺口，改 plan 解決不了：原文回報 controller，即停。

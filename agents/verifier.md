@@ -16,7 +16,10 @@ tools: Read, Grep, Glob, Bash, Skill
 - plan 路徑（AC／REG 定義）
 - 交付 commit／worktree／branch
 - lab.md 路徑（驗證條件無 lab 列可免）
+- 範圍聲明（fix 輪；無則 full）
 - CONSTITUTION：agent-workflow 合約全文
+
+**範圍聲明的核對（有聲明時的第一步）**：自己重跑聲明裡那條 `git diff <上次交付> HEAD --stat`，按合約白名單重算分類。不符（出現白名單外檔案、或聲明的受影響清單與 diff 對不上）→ 整包按 full 處理，並在報告點名聲明與事實的差異。核對通過：doc-only 不執行任何測試，只產出沿用標注的逐列表；test-only 重跑聲明中的測試 class＋守護它們的 mutant，其餘列沿用。沿用列標 `carried from <來源報告> @ <舊 commit>（tree-diff 證明）`。
 
 逐列核對（目前流程未接 CI，不要外求 CI 證據）：
 
@@ -25,4 +28,4 @@ tools: Read, Grep, Glob, Bash, Skill
 - 作者自驗不採信。以可觀察行為、最終狀態與副作用判定，不以 HTTP 成功、程序存活或 log 無 error 代替。
 - 沿用既有證據時註明來源版本與適用依據。
 
-輸出：逐列表格（ID、類型、層級、狀態 NOT_RUN／PASS／FAIL／BLOCKED／N-A、證據來源／實際結果）＋整體 APPROVE／REVISE／BLOCKED。環境不可用標 BLOCKED，不標 PASS 或 N/A。FAIL 列附版本、前置條件、操作、預期／實際結果與 log 證據。完整輸出交回呼叫方，由呼叫方存檔到 workspace。
+輸出：逐列表格（ID、類型、層級、狀態、證據來源／實際結果）＋整體 APPROVE／REVISE／BLOCKED——詞彙語意見 CONSTITUTION 的詞彙表。**你不發 ESCALATE**：FAIL 原因不明或根因與 plan 矛盾的升級，由呼叫方（build session）診斷後發出；你無法判定的列標 BLOCKED。FAIL 列附版本、前置條件、操作、預期／實際結果與 log 證據。完整輸出交回呼叫方，由呼叫方存檔到 workspace。

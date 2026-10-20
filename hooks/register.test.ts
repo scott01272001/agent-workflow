@@ -47,6 +47,15 @@ test('session 名的 role 後綴正確剝除', async ($, on) => {
   expect(bad.deny).toContain('違規')
 })
 
+test('controller 後綴的 session 名也受 ticket 格式檢查', async ($, on) => {
+  on('tool.call', { tool: 'Bash' }, () => ({ result: { text: 'ran' } }))
+  const bad = await $.tool.call({
+    tool: 'Bash',
+    command: 'claude --bg --name "bad ticket-controller" "start"',
+  })
+  expect(bad.deny).toContain('違規')
+})
+
 test('文件佔位符與無關命令放行', async ($, on) => {
   on('tool.call', { tool: 'Bash' }, () => ({ result: { text: 'ran' } }))
   const placeholder = await $.tool.call({
@@ -58,65 +67,21 @@ test('文件佔位符與無關命令放行', async ($, on) => {
   expect(unrelated.deny).toBe(undefined)
 })
 
-// --- Controller 自動改名 ---
-import { spawnedMemberTicket, controllerQueueDecision, CONTROLLER_QUEUE } from './register'
-
-const SPAWN_CMD = 'claude --bg --name VAID-123-planning "start"'
-
-test('member spawn 解析出 ticket；非 member 與佔位符回 null', async () => {
-  expect(spawnedMemberTicket(SPAWN_CMD)).toBe('VAID-123')
-  expect(spawnedMemberTicket('claude --bg --name VAID-123-build go')).toBe('VAID-123')
-  expect(spawnedMemberTicket('claude --bg --name helper "x"')).toBe(null)
-  expect(spawnedMemberTicket('claude --bg --name {ticket}-planning "x"')).toBe(null)
-  expect(spawnedMemberTicket('ls -la')).toBe(null)
-})
-
-test('無衝突時排隊 controller 名', async () => {
-  const d = controllerQueueDecision(SPAWN_CMD, 'sid-1', [], undefined)
-  expect(d.kind).toBe('queue')
-  if (d.kind === 'queue') expect(d.controller).toBe('VAID-123-controller')
-})
-
-test('名字被其他 live session 持有時 deny', async () => {
-  const d = controllerQueueDecision(SPAWN_CMD, 'sid-1',
-    [{ name: 'VAID-123-controller', sessionId: 'sid-other' }], undefined)
-  expect(d.kind).toBe('deny')
-})
-
-test('本 session 已名為該 controller 時不重排也不擋', async () => {
-  const d = controllerQueueDecision(SPAWN_CMD, 'sid-1',
-    [{ name: 'VAID-123-controller', sessionId: 'sid-1' }], 'VAID-123-controller')
-  expect(d.kind).toBe('skip')
-})
-
-test('冪等：queue 已有同名就 skip', async () => {
-  const d = controllerQueueDecision(SPAWN_CMD, 'sid-1', [], 'VAID-123-controller')
-  expect(d.kind).toBe('skip')
-})
-
-test('本 session 是另一個活 group 的 controller 時 deny', async () => {
-  const d = controllerQueueDecision(SPAWN_CMD, 'sid-1',
-    [{ name: 'OLD-9-controller', sessionId: 'sid-1' },
-     { name: 'OLD-9-build', sessionId: 'sid-m' }], undefined)
-  expect(d.kind).toBe('deny')
-})
-
-test('舊 group 無活 member 時換 ticket 可重排', async () => {
-  const d = controllerQueueDecision(SPAWN_CMD, 'sid-1',
-    [{ name: 'OLD-9-controller', sessionId: 'sid-1' }], 'OLD-9-controller')
-  expect(d.kind).toBe('queue')
-})
-
-test('queue 路徑與 .py hook 一致', async () => {
-  // apply_controller_name.py 的 PENDING = .claude/agent-workspace/.controller-names
-  expect(CONTROLLER_QUEUE).toBe('.claude/agent-workspace/.controller-names')
-})
-
-test('controller 後綴的 session 名也受 ticket 格式檢查', async ($, on) => {
+test('shell glob 與執行期佔位符放行', async ($, on) => {
   on('tool.call', { tool: 'Bash' }, () => ({ result: { text: 'ran' } }))
-  const bad = await $.tool.call({
+  const glob = await $.tool.call({
     tool: 'Bash',
-    command: 'claude --bg --name "bad ticket-controller" "start"',
+    command: 'ls .claude/agent-workspace/*/lab.md',
   })
-  expect(bad.deny).toContain('違規')
+  expect(glob.deny).toBe(undefined)
+  const question = await $.tool.call({
+    tool: 'Bash',
+    command: 'ls .claude/agent-workspace/VAID-12?/plan.md',
+  })
+  expect(question.deny).toBe(undefined)
+  const runtime = await $.tool.call({
+    tool: 'Bash',
+    command: "grep 'code-review-r<N>.md' .claude/agent-workspace/<ticket>/notes.md",
+  })
+  expect(runtime.deny).toBe(undefined)
 })

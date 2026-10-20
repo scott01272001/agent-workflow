@@ -221,12 +221,10 @@ EXAMINED:
 - For skipped passes: <pass> SKIPPED (<not applicable/out of requested scope>)
 
 RECOMMENDATION: APPROVE | REVISE | ESCALATE | BLOCKED (<reason>)
-- APPROVE: no BLOCKER; MUST-RECORD items require explicit verification
-  actions/points for the controller to track, not automatic revision.
-- REVISE: one or more BLOCKERs can be fixed in TARGET.
-- ESCALATE: a requirement-level gap or conflict cannot be resolved by
-  revising TARGET alone.
-- BLOCKED: missing/unreadable input or review scope requiring decomposition.
+- Verdict and severity semantics live in CONSTITUTION's 詞彙表 — the single
+  source; do not restate or redefine them here.
+- BLOCKED also covers a review scope requiring decomposition:
+  `BLOCKED (DECOMPOSE)`, with a proposed split by decision.
 
 Advisory only. The invoking session fixes every BLOCKER or escalates — it may
 not silently drop a finding; disagreement with a finding is recorded in its

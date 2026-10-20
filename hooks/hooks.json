@@ -1,16 +1,3 @@
 {
-  "modules": ["./register.tsx"],
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/apply_controller_name.py\"",
-            "timeout": 5
-          }
-        ]
-      }
-    ]
-  }
+  "modules": ["./register.tsx"]
 }

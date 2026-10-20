@@ -14,9 +14,9 @@ disable-model-invocation: true
 
 - flow 檔（`assets/flow/<type>/*.md`）的 frontmatter 是 spawn 清單：session 名、model、effort。**spawn 時照 frontmatter 的值帶 flags**——模型路由的策略在 flow 檔，不在本檔。
 - `claude --bg`，`--append-system-prompt` 帶 `reference/contract.md` 全文（session 在目標 repo 工作，讀不到 plugin 路徑，憲法必須注入）。
-- flow 檔本文填好輸入欄後作為第一則訊息注入。注入前自查：不得殘留未填的 `{...}` 佔位符；範本不足時回報 user，禁止即興創作角色指令。
+- flow 檔本文填好輸入欄後作為第一則訊息注入。佔位符分兩種：`{...}` 由你（controller）注入前填好，不得殘留；`<...>` 是 maker 執行期自填的變數（如 `<N>`、`<SHA>`），原樣保留。範本不足時回報 user，禁止即興創作角色指令。
 - 目標 repo 還沒有 `.claude/agent-workspace/` 時，先跑 `setup` skill。
-- **controller 自動改名**：spawn 第一個 member 時，mod（`hooks/register.tsx`）自動把改名排入 queue——user 的下一則訊息後，本 session 改名為 `{ticket}-controller`（member 回報的收件者；套用由 `hooks/apply_controller_name.py` 完成）。你唯一要做的是 spawn 完向 user 加一行：「下一則訊息後，本 session 改名為 `{ticket}-controller`」。名字衝突時 mod 會直接擋下 spawn 並說明。
+- **controller 的回報地址＝本 session 的實名**：spawn 任何 member 前，用 ListAgents 確認本 session 當下可定址的名字，填進 flow 檔的「回報對象」欄。建議（非必要）請 user 在開 flow 前先 `/rename {ticket}-controller`，名字即語意；**flow 進行中不改名**——改名會讓已派出 member 的回報撲空。
 - member 的 tools 不得排除 SendMessage／ListAgents（目前 frontmatter 未限 tools，預設即有——此句防未來加 tools 限制時砍掉回報通道）。
 - session 閒置約一小時會停；要再聯絡先 wake。checker 是 subagent（`agents/`，frontmatter 管 model／tools），由 maker session 自己召，每輪新生、不得 fork。
 
@@ -30,7 +30,7 @@ disable-model-invocation: true
    - 只有工件（ticket、重現線索）進入 phase 1，敘述不進 loop。
 
 3. **Bug-fix — phase 1（planning）**
-   - 照 `assets/flow/bug-fix/planning.md` frontmatter 開 `{ticket}-planning`，注入填好的本文（ticket、症狀、既有線索、plan 路徑 `.claude/agent-workspace/{ticket}/plan.md`、回報對象 `{ticket}-controller`）。
+   - 照 `assets/flow/bug-fix/planning.md` frontmatter 開 `{ticket}-planning`，注入填好的本文（ticket、症狀、既有線索、plan 路徑 `.claude/agent-workspace/{ticket}/plan.md`、回報對象＝本 session 實名）。
    - planning session 自己跑 inner loop（reproduce → planning → plan review，上限三輪），你只等回報。
    - 回報路由：`APPROVED` → gate 1；`ESCALATE`／`BLOCKED`／三輪未過 → 原文呈給 user，等 user 決定。
 
@@ -39,8 +39,9 @@ disable-model-invocation: true
    - user 退回 → 意見作 findings 重派同一個 planning session。
 
 4. **Bug-fix — phase 2（build）**
+   - **先查 trunk 漂移**：比對 plan 的基準 commit（phase 1 重現與根因所本）與當前 trunk；trunk 已前進時列出新增 commit 的範圍（`git log --oneline <基準>..<trunk>`）交 user 裁決——照新 trunk 建（plan 的重現與影響面可能要重驗）或照基準建。
    - 在主 checkout 建 worktree：`git worktree add .claude/worktrees/{ticket} -b dev/{ticket} <trunk>`（trunk＝origin/HEAD 指向的分支；定不出來問 user）。
-   - 照 `assets/flow/bug-fix/build.md` frontmatter 開 `{ticket}-build`，**工作目錄設在 worktree**，注入填好的本文（plan 路徑、worktree／branch／base、lab.md、spec 更新擬議（gate 1 核准版）、findings、回報對象 `{ticket}-controller`）。
+   - 照 `assets/flow/bug-fix/build.md` frontmatter 開 `{ticket}-build`，**工作目錄設在 worktree**，注入填好的本文（plan 路徑、worktree／branch／base、lab.md、spec 更新擬議（gate 1 核准版）、findings、回報對象＝本 session 實名）。
    - 填 build.md 輸入欄的所有 workspace 路徑（plan、lab.md、報告路徑）一律用**主 checkout 的絕對路徑**：build session 在 worktree 工作，相對路徑解析不到主 checkout 的 gitignored workspace，還會造成 workspace 分裂。
    - build session 自己跑 inner loop（回歸測試 → implement → 自驗 → code review → verify，上限三輪），checker 用 `agents/code-reviewer.md` 與 `agents/verifier.md`。
    - 回報路由：`APPROVED` → gate 2；`ESCALATE`／`BLOCKED`／三輪未過 → 原文呈給 user。
@@ -54,5 +55,6 @@ disable-model-invocation: true
 - merge 等對外動作永遠是人的；本 skill 的任何一層都不得代決。
 - **跨 phase 退回**：需要修 plan 而 planning session 已收掉時（build 回報 ESCALATE、或 gate 2 的人要求改 plan），照 planning.md frontmatter 重開 `{ticket}-planning`，輸入含原 plan 路徑、要答覆的 findings（ESCALATE 原文或人的意見）；plan 修訂後重走 plan review 與 gate 1，再回到 phase 2（build session 保留，worktree 不動）。
 - BLOCKED／ESCALATE = 缺證據或缺人的決策；任何成員任何時候回報，直接到你這裡找人，你不替人選出口。
-- **改名沒落地**（member 回報撲空、ListAgents 看不到 `{ticket}-controller`）：請 user 執行 `/rename {ticket}-controller`。已知坑：排隊後本 session 被背景化會換 session id，queue 落空（v1 issue 21 同款），同樣用 `/rename` 兜底。
+- **member 回報撲空**（找不到回報對象）：用 ListAgents 核對本 session 名與 flow 檔裡填的回報對象是否一致；不一致（如 session 被改名或背景化後換名）→ 重派時更新回報對象欄。
+- **讀 member 的對話**不要用 `claude logs`（輸出是 TUI 控制碼）；讀 `~/.claude/projects/<專案 slug>/<sessionId>.jsonl`，取最後的 assistant 文字即其回報。
 - 你不生產、不裁決內容。證據過手不過腦：呈給 user 的是報告原文與路徑，不是你的轉述。

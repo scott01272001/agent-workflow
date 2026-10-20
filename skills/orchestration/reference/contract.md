@@ -18,7 +18,7 @@ repo
 - 中途文件一律放 `.claude/agent-workspace/{ticket}/`；agent 執行任務時優先到此查詢相關文件。
 - 專案憲法有自己的 spec 保存規則時，以專案規則優先。
 - 注意：專案的 `agent/`（文件目錄）與 plugin 的 `agents/`（subagent 定義）是兩回事，引用時寫全路徑。
-- **{ticket} 識別字**：有 ticket 編號用編號原樣（如 `VAID-123`）；無編號時 controller 提議 kebab-case slug 並向 user 確認一次。格式：英數開頭，其後只允許英數與 `.` `_` `-`，至多 40 字元，禁空白與 `/`。phase 0 定案後全程不變——目錄、session 名、controller 名 `{ticket}-controller`、branch `dev/{ticket}` 皆由它衍生，後續 phase 從既有工件（gate 1 報告的 plan 路徑）回讀，不重新推導。此規則由 plugin 的 mod（`hooks/register.tsx`）在 tool.call 層強制：違規或不一致的命令會被擋下。
+- **{ticket} 識別字**：有 ticket 編號用編號原樣（如 `VAID-123`）；無編號時 controller 提議 kebab-case slug 並向 user 確認一次。格式：英數開頭，其後只允許英數與 `.` `_` `-`，至多 40 字元，禁空白與 `/`。phase 0 定案後全程不變——目錄、session 名、branch `dev/{ticket}` 皆由它衍生，後續 phase 從既有工件（gate 1 報告的 plan 路徑）回讀，不重新推導。此規則由 plugin 的 mod（`hooks/register.tsx`）在 tool.call 層強制：違規或不一致的命令會被擋下。
 
 ## 文件種類
 
@@ -29,13 +29,34 @@ repo
 
 ## 判定規則（跨 flow、跨 session）
 
-- **Verdict 詞彙全 plugin 統一**：APPROVE／REVISE／ESCALATE／BLOCKED；嚴重度 BLOCKER／MUST-RECORD。
+- **Verdict 詞彙全 plugin 統一**：定義見「詞彙表」節——那是唯一的語意來源，agent 檔與 flow 檔只引用、不得另行定義。
 - **迴圈上限**：每個 inner loop 上限三輪；第三輪仍不過，帶最新結果與未解項出去找人，不跑第四輪。BLOCKED（缺證據或缺人的決策）與 ESCALATE（需求級缺口，改產出解決不了）任何時候直接出 loop 找人，不進修正迴圈；agent 不替人選出口。
 - **gate 退回**：人在任一 gate 退回時，user 的意見作為 findings 回到該段 inner loop 的 maker 步驟，同一個 session 繼續（context 還在），輪數重新起算。該 session 已收掉時（跨 phase 退回），重開同名 session 並以工件（plan、報告）補 context——工件自足是這個架構的交接前提。
 - **merge 歸人**：merge、正式部署、破壞性資料操作永遠是人的動作，不在任何 inner loop 裡。agent 交出的是證據，不是既成事實。
-- **證據規則**：證據必須對應交付 commit；maker 自驗是交棒條件，不是驗收證據；同一組 AC／REG ID 走完整條 flow，任何階段不得重新發明。目前流程未接 CI：unit／integration 列一律由 verify 自跑補證據。
+- **證據規則**：證據必須對應交付 commit（fix 輪經「範圍分級」核可的沿用列除外——證據綁內容，附 diff 證明）；maker 自驗是交棒條件，不是驗收證據；同一組 AC／REG ID 走完整條 flow，任何階段不得重新發明。目前流程未接 CI：unit／integration 列一律由 verify 自跑補證據。
+- **範圍分級（fix 輪的 review／verify 路由）**：僅適用修正輪（code review／verify FAIL／gate 退回後），首輪永遠 full。tier 是 diff 的純函數，無人有裁量：`git diff <上次交付 commit> HEAD --stat` 按白名單分類——**doc-only**（差異全在文件白名單：`*.md`、`docs/`、`agent/spec/`；純 commit message 改寫為空 diff 亦屬之）、**test-only**（差異全在專案測試目錄與 test resources＋文件）、**full**（出現任何白名單外檔案，fail-closed）。白名單預設如上，專案憲法可覆寫。maker 計算並產出**範圍聲明**（分類、diff 原文、受影響測試與其守護的 AC／REG ID、重驗列、沿用列與來源報告）隨交棒附上；verifier 第一步重算同一條 diff 核對範圍聲明，不符按 full 處理並點名；人在 gate 可強制 full。工作量隨級收縮、階段不跳過：doc-only 零測試（verify 只核聲明＋產沿用表）、test-only 只重跑被改測試 class＋守護它們的 mutant（無 mutation 機制時，守重現的測試重證能區分修正前後）、full 照 AC／REG 全列。沿用列標注來源報告與舊 commit。輪數照算，三輪上限不變。
 - **報告保存**：checker subagent 的完整輸出由呼叫方（maker session）存檔到 workspace 的指定報告路徑；checker 本身不寫檔。
 - **測試對應**：plan 的 AC／REG 只標層級，不指定測試名或方法。每條測試在自己的 doc 註明它守的 AC／REG ID（例：`spec xxx - AC1`）；code review 的擋件條件之一是每條 AC／REG 都有具名測試守住。AC-ID 是契約連結，不是歷史紀錄。
+
+## 詞彙表（verdict 與狀態）
+
+**Checker verdict**（plan review／code review／verify 的整體判定）：
+
+- **APPROVE**：無 BLOCKER。MUST-RECORD 可同時存在，不擋核准。
+- **REVISE**：有可在產出內修正的 BLOCKER；maker 修全部 BLOCKER 後重審，計一輪。
+- **ESCALATE**：需求級缺口，改產出解決不了——直接出 loop 交人。
+- **BLOCKED**：缺必要輸入或證據，無法作出判定。
+
+**嚴重度**（逐項 finding）：
+
+- **BLOCKER**：有可信違約路徑的缺陷；修正或升級前不得依賴該產出。
+- **MUST-RECORD**：重大但不阻塞的風險——必附驗證方式與最晚解決時點，由 gate 的人追蹤，到期未解才升級。不確定性本身不構成 BLOCKER：要說明失敗路徑與為何驗證不能延後。
+
+**Maker 回報結果字**（session 回報的第一行）：`APPROVED`／`ESCALATE`／`BLOCKED`／三輪未過。
+`APPROVED` ≠ `APPROVE`：前者是 maker session 的階段結果，後者是 checker 的判定。
+
+**逐列狀態**（verify 報告的 AC／REG 列）：NOT_RUN／PASS／FAIL／BLOCKED／N-A。
+環境不可用是 BLOCKED，不是 N/A；N/A 必附不適用依據。
 
 ## Workflow
 
