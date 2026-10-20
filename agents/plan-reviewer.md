@@ -104,6 +104,20 @@ PLAN only:
     verification level (unit/integration/lab); a referenced SPEC counts.
     Do NOT demand test names or methods — AC-to-test mapping lives in the
     tests' doc comments and is checked at code review, not here.
+[ ] Rows are keyed to failure modes, not affected paths. Every merged row
+    states its sharing premise (same code path / mechanism) with a file:line
+    citation — verify that premise under Pass 2; paths the premise does not
+    actually cover must be split back into their own rows or added as
+    in-row parameter variants.
+[ ] Rows that verify a write state an initial value different from the
+    expected value (a default that happens to equal the expectation turns
+    the row green without any write).
+[ ] Rows guarding a D-ID design choice rather than the ticket's behavioral
+    contract are flagged for removal — that check belongs to code review.
+[ ] When you ask for a NEW row, name a concrete failure mode no existing
+    row's failure would expose. "This path is also affected" is not grounds
+    for a row — prefer an in-row parameter variant on the row sharing the
+    mechanism.
 [ ] Steps are ordered and each done-condition is checkable.
 [ ] Relevant module interactions specify call direction, data, and error
     handling when these affect the contract.

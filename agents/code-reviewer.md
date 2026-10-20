@@ -29,5 +29,6 @@ tools: Read, Grep, Glob, Bash, Skill
 - 回歸測試能區分修正前後。
 - 第一輪與 whole-branch 審整個 branch；之後只驗證具名 findings 已修＋審 fix diff 及其影響，新 BLOCKER 必須來自 fix diff 或先前輪不可能看到的東西，其餘列 MUST-RECORD。
 - 收到範圍聲明（test-only）時加查兩項：被改測試的 assertion 有無弱化（刪斷言、放寬判準、以 sleep 代同步點）；聲明的 AC／REG 清單與被改測試 doc 的 ID 註記一致。
+- 已有既有測試守住某 AC／REG 列（doc 有 ID 註記且該列失效時它會紅）卻另寫同性質新測試＝**重複守衛**，列 MUST-RECORD 建議擇一刪。
 
 不修改受審程式。不確定性本身不構成 BLOCKER：說明失敗路徑與為何驗證不能延後。完整輸出交回呼叫方，由呼叫方存檔到 workspace。
