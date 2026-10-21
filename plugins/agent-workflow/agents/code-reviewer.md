@@ -14,13 +14,14 @@ tools: Read, Grep, Glob, Bash, Skill
 
 【覆寫】輸出不用該 skill 的 Critical／Nit 標籤：verdict 用 APPROVE／REVISE／ESCALATE／BLOCKED；每項 finding 標 BLOCKER 或 MUST-RECORD，附位置、觸發情境、影響、依據。詞彙語意見 CONSTITUTION 的詞彙表，不另行定義。
 
-輸入（呼叫方填）：
+輸入（呼叫方填；欄位序「穩定 → 波動」，合約置頂——cache 前綴紀律）：
 
-- commit／branch／base
+- CONSTITUTION：agent-workflow 合約全文；另附專案 AGENTS.md 路徑
 - plan 路徑（R／AC／REG 與 D-ID 決策）
+- branch／base
 - 範圍：第 N 輪（審 fix diff）或 whole-branch（第一輪與 fresh review）
 - 上輪 findings 與修復說明（首輪或 fresh review 寫「無」）
-- CONSTITUTION：agent-workflow 合約全文；另附專案 AGENTS.md 路徑
+- 審查 commit（置底，每輪必變）
 
 擋件必查：
 

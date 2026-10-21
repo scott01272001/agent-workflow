@@ -45,12 +45,14 @@ effort: xhigh
 ## step 4 — code review（inner loop，上限三輪）
 
 1. 用 Agent tool 以 `agents/code-reviewer.md` 的角色定義開 subagent（**每輪新生，不得 fork**），輸入照該檔的輸入欄填：
-   - commit <SHA>、branch <名稱>、base <SHA>
+   欄位序固定「穩定 → 波動」（合約置頂逐字相同，各輪 reviewer 才共享前綴 cache）：
+   - CONSTITUTION：<貼上 agent-workflow 合約全文>＋專案 AGENTS.md 路徑
    - plan：`{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/plan.md`
+   - branch <名稱>、base <SHA>
    - 範圍：第 1 輪 whole-branch；之後第 <N> 輪 fix diff
    - 上輪 findings 與修復說明：<首輪寫「無」>
    - 範圍聲明：<fix 輪附上；首輪寫「無」>
-   - CONSTITUTION：<貼上 agent-workflow 合約全文>＋專案 AGENTS.md 路徑
+   - 審查 commit：<SHA>（每輪必變，置底）
 
 2. 把 subagent 的完整輸出存到 `{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/code-review-r<N>.md`，依 verdict 走：
    - **APPROVE** → step 5。
@@ -61,11 +63,13 @@ effort: xhigh
 ## step 5 — verify（獨立證據核對）
 
 1. 用 Agent tool 以 `agents/verifier.md` 的角色定義開 subagent（不得 fork），輸入照該檔的輸入欄填：
-   - plan：`{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/plan.md`
-   - 交付 commit <SHA>、worktree／branch <值>
-   - lab.md：`{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/lab.md`（無 lab 列可免）
-   - 範圍聲明：<fix 輪附上；首輪寫「無」>
+   欄位序同 step 4（穩定 → 波動）：
    - CONSTITUTION：<貼上 agent-workflow 合約全文>
+   - plan：`{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/plan.md`
+   - lab.md：`{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/lab.md`（無 lab 列可免）
+   - worktree／branch <值>
+   - 範圍聲明：<fix 輪附上；首輪寫「無」>
+   - 交付 commit：<SHA>（每輪必變，置底）
 
 2. 把 subagent 的完整輸出存到 `{主 checkout 絕對路徑}/.claude/agent-workspace/{ticket}/verify.md`，依結果走：
    - **APPROVE** → step 6。

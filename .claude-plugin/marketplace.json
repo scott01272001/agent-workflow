@@ -1,15 +1,27 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "agent-workflow",
-  "description": "Local marketplace for the agent-workflow plugin",
+  "description": "Scott's Claude Code toolset: the agent-workflow flow runner plus general-purpose companion plugins.",
   "owner": {
     "name": "Scott Chiang"
   },
   "plugins": [
     {
       "name": "agent-workflow",
-      "source": "./",
+      "source": "./plugins/agent-workflow",
       "description": "Three-layer flow runner: controller with human gates, maker sessions, fresh checker subagents; ticket identifier enforced by a tool.call mod.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "context-usage-bar",
+      "source": "./plugins/context-usage-bar",
+      "description": "Bars above the prompt: context window fill, rate-limit windows, and prompt-cache hit rate with an estimated TTL countdown; /cache-report summarizes hits, cliffs and idle gaps.",
+      "version": "0.2.0"
+    },
+    {
+      "name": "cache-keeper",
+      "source": "./plugins/cache-keeper",
+      "description": "Keeps the session's prompt cache warm: one inert self-ping when idle approaches the TTL, so the next real turn reads the cache instead of rewriting it. Off by default; /keep-warm toggles per session.",
       "version": "0.1.0"
     }
   ]

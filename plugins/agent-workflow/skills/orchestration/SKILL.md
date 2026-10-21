@@ -15,10 +15,11 @@ disable-model-invocation: true
 - flow 檔（`assets/flow/<type>/*.md`）的 frontmatter 是 spawn 清單：session 名、model、effort。**spawn 時照 frontmatter 的值帶 flags**——模型路由的策略在 flow 檔，不在本檔。
 - `claude --bg`，`--append-system-prompt` 帶 `reference/contract.md` 全文（session 在目標 repo 工作，讀不到 plugin 路徑，憲法必須注入）。
 - flow 檔本文填好輸入欄後作為第一則訊息注入。佔位符分兩種：`{...}` 由你（controller）注入前填好，不得殘留；`<...>` 是 maker 執行期自填的變數（如 `<N>`、`<SHA>`），原樣保留。範本不足時回報 user，禁止即興創作角色指令。
+- **前綴 cache 紀律**：cache 以「組織＋模型＋位元組前綴」為鍵，第一個不同的 byte 之後全部作廢。所以——assignment 欄位序照範本的「穩定 → 波動」排列，不得重排；合約逐字貼原文（不摘錄、不加語境句），flow 進行中不改 contract.md；範本與 assignment 不得含日期、時間等每次必變的內容；maker 的 system prompt 注入 spawn 後永不改動。守住這些，同一 checker 的各輪只付波動尾巴的錢。
 - 目標 repo 還沒有 `.claude/agent-workspace/` 時，先跑 `setup` skill。
 - **controller 的回報地址＝本 session 的實名**：spawn 任何 member 前，用 ListAgents 確認本 session 當下可定址的名字，填進 flow 檔的「回報對象」欄。建議（非必要）請 user 在開 flow 前先 `/rename {ticket}-controller`，名字即語意；**flow 進行中不改名**——改名會讓已派出 member 的回報撲空。
 - member 的 tools 不得排除 SendMessage／ListAgents（目前 frontmatter 未限 tools，預設即有——此句防未來加 tools 限制時砍掉回報通道）。
-- session 閒置約一小時會停；要再聯絡先 wake。checker 是 subagent（`agents/`，frontmatter 管 model／tools），由 maker session 自己召，每輪新生、不得 fork。
+- session 閒置約一小時會停；要再聯絡直接 SendMessage（訊息會讓它醒來處理；CLI 沒有 wake 命令）。checker 是 subagent（`agents/`，frontmatter 管 model／tools），由 maker session 自己召，每輪新生、不得 fork。
 
 ## Workflow
 

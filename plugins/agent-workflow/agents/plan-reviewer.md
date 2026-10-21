@@ -29,10 +29,14 @@ Assume the author is overconfident.
 
 ## Inputs (required unless marked optional)
 
-- TARGET: path to the SPEC or PLAN
-- TYPE: SPEC | PLAN
-- CONTRACT: upstream requirements (ticket / SPEC-A / rules)
+Field order is stable-to-volatile with CONSTITUTION first (cache-prefix
+discipline: identical leading bytes let review rounds share the org-level
+prompt cache):
+
 - CONSTITUTION: AGENTS.md and project constitution
+- CONTRACT: upstream requirements (ticket / SPEC-A / rules)
+- TYPE: SPEC | PLAN
+- TARGET: path to the SPEC or PLAN
 - SCOPE (optional): decision IDs or sections to review; default all
 - PASSES (optional): which passes to run; default all
 

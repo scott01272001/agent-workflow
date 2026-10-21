@@ -41,13 +41,14 @@ effort: xhigh
 1. 用 Agent tool 以 `agents/plan-reviewer.md` 開 subagent（**每輪新生，不得用 fork**——fork 會帶入你的 context，違反 fresh review），prompt 照下列填：
 
    ```
-   TARGET: .claude/agent-workspace/{ticket}/plan.md
-   TYPE: PLAN
+   CONSTITUTION: <貼上 agent-workflow 合約全文，逐字、置頂——subagent 讀不到
+     plugin 路徑；合約放最前讓各輪 reviewer 共享 org 級前綴 cache>；
+     另附專案 AGENTS.md／constitution 路徑（無則寫「無」）
    CONTRACT: {ticket 路徑或需求敘述}。另加本 flow 的擋件條件：
      重現存在且附執行輸出；每條 AC/REG 可客觀判定且標層級；
      根因有證據支撐；影響面已物化成 REG 列。
-   CONSTITUTION: <貼上 agent-workflow 合約全文——subagent 讀不到 plugin 路徑>；
-     另附專案 AGENTS.md／constitution 路徑（無則寫「無」）
+   TYPE: PLAN
+   TARGET: .claude/agent-workspace/{ticket}/plan.md
    ```
 
 2. 把 reviewer 的完整輸出存到 `.claude/agent-workspace/{ticket}/plan-review-r<N>.md`，依 RECOMMENDATION 走：
