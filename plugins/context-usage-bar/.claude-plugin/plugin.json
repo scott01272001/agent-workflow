@@ -1,0 +1,16 @@
+{
+  "name": "context-usage-bar",
+  "version": "0.2.0",
+  "description": "Bars above the prompt: context window fill, rate-limit windows, and prompt-cache hit rate with an estimated TTL countdown; /cache-report summarizes hits, cliffs and idle gaps.",
+  "author": { "name": "Scott Chiang" },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "ttl": {
+      "title": "Prompt cache TTL",
+      "type": "string",
+      "options": ["5m", "1h"],
+      "default": "1h",
+      "description": "Prompt cache TTL assumed for the countdown and cliff attribution (the API exposes no expiry; Claude Code sessions usually run 1h)."
+    }
+  }
+}
