@@ -1,0 +1,30 @@
+{
+  "name": "cache-keeper",
+  "version": "0.1.0",
+  "description": "Keeps the session's prompt cache warm: when the session idles toward the cache TTL, sends itself one inert ping so the next real turn reads the cache instead of rewriting it. Guardrails: prefix threshold, consecutive-ping cap, gives up once expired. Off by default.",
+  "author": { "name": "Scott Chiang" },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "mode": {
+      "title": "Keep-warm mode",
+      "type": "string",
+      "options": ["off", "on"],
+      "default": "off",
+      "description": "Pings cost real tokens (a cache read plus a tiny turn). Off: never ping unless /keep-warm on is run in a session. On: every session self-pings when idle approaches the TTL."
+    },
+    "ttl": {
+      "title": "Prompt cache TTL",
+      "type": "string",
+      "options": ["5m", "1h"],
+      "default": "1h",
+      "description": "Assumed cache TTL. Pings fire at 80% of this idle time; past 100% the cache is gone and pinging is pointless, so the keeper gives up."
+    },
+    "maxPings": {
+      "title": "Max consecutive pings",
+      "type": "string",
+      "options": ["1", "3", "5"],
+      "default": "3",
+      "description": "Pings sent since the last real activity before the keeper gives up (an abandoned session should not be kept warm forever). Any real turn resets the count."
+    }
+  }
+}
